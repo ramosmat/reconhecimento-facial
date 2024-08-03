@@ -28,17 +28,22 @@ function App() {
     });
   }, []);
 
+  // Detecta as expressões faciais a cada segundo
   async function handleLoadedMetadata() {
     const videoElement = videoRef.current as HTMLVideoElement;
     const canvasElement = canvasRef.current as HTMLCanvasElement;
 
     if (!videoElement || !canvasElement) return;
 
-    const detection = await faceapi.detectSingleFace(
-      videoElement as HTMLVideoElement,
-      new faceapi.TinyFaceDetectorOptions(),
-    );
+    const detection = await faceapi
+      .detectSingleFace(
+        videoElement as HTMLVideoElement,
+        new faceapi.TinyFaceDetectorOptions(),
+      )
+      .withFaceLandmarks()
+      .withFaceExpressions();
     console.log(detection);
+
     if (detection) {
       const dimensions = {
         width: videoElement?.offsetWidth,
@@ -48,6 +53,8 @@ function App() {
       faceapi.matchDimensions(canvasElement, dimensions);
       const resizedResults = faceapi.resizeResults(detection, dimensions);
       faceapi.draw.drawDetections(canvasElement, resizedResults);
+      faceapi.draw.drawFaceLandmarks(canvasElement, resizedResults);
+      faceapi.draw.drawFaceExpressions(canvasElement, resizedResults);
     }
 
     setTimeout(() => {
