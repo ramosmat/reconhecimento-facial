@@ -1,7 +1,30 @@
+import React from 'react';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
+import * as faceapi from 'face-api.js';
 
 function App() {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      const videoElement = videoRef.current;
+      if (videoElement) {
+        videoElement.srcObject = stream;
+      }
+    });
+  }, []);
+
+  React.useEffect(() => {
+    Promise.all([
+      faceapi.loadTinyFaceDetectorModel('/models'),
+      faceapi.loadFaceLandmarkModel('/models'),
+      faceapi.loadFaceExpressionModel('/models'),
+    ]).then(() => {
+      console.log('teste');
+    });
+  }, []);
+
   return (
     <main className="min-h-screen flex flex-col lg:flex-row md:justify-between gap-14 xl:gap-40 p-10 items-center container mx-auto">
       <Header />
@@ -9,7 +32,9 @@ function App() {
         <div className="bg-white rounded-xl p-2">
           <div className="relative flex items-center justify-center aspect-video w-full">
             {/* Substitua pela Webcam */}
-            <div className="aspect-video rounded-lg bg-gray-300 w-full"></div>
+            <div className="aspect-video rounded-lg bg-gray-300 w-full">
+              <video autoPlay ref={videoRef}></video>
+            </div>
             {/* Substitua pela Webcam */}
           </div>
         </div>
