@@ -6,6 +6,7 @@ import * as faceapi from 'face-api.js';
 function App() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
+  // Inicializa a câmera quando o componente é montado
   React.useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
       const videoElement = videoRef.current;
@@ -15,6 +16,7 @@ function App() {
     });
   }, []);
 
+  // Carrega os modelos quando o componente é montado
   React.useEffect(() => {
     Promise.all([
       faceapi.loadTinyFaceDetectorModel('/models'),
@@ -23,6 +25,21 @@ function App() {
     ]).then(() => {
       console.log('teste');
     });
+  }, []);
+
+  // Inicia a detecção de face quando o componente é montado
+  React.useEffect(() => {
+    const input = videoRef.current;
+
+    async function detect() {
+      const detection = await faceapi.detectSingleFace(
+        input as HTMLVideoElement,
+        new faceapi.TinyFaceDetectorOptions(),
+      );
+      console.log(detection);
+    }
+
+    detect();
   }, []);
 
   return (
