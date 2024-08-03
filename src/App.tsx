@@ -5,6 +5,7 @@ import * as faceapi from 'face-api.js';
 
 function App() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Inicializa a câmera quando o componente é montado
   React.useEffect(() => {
@@ -27,20 +28,32 @@ function App() {
     });
   }, []);
 
-  // Inicia a detecção de face quando o componente é montado
-  React.useEffect(() => {
-    const input = videoRef.current;
+  async function handleLoadedMetadata() {
+    const videoElement = videoRef.current as HTMLVideoElement;
+    const canvasElement = canvasRef.current as HTMLCanvasElement;
 
-    async function detect() {
-      const detection = await faceapi.detectSingleFace(
-        input as HTMLVideoElement,
-        new faceapi.TinyFaceDetectorOptions(),
-      );
-      console.log(detection);
+    if (!videoElement || !canvasElement) return;
+
+    const detection = await faceapi.detectSingleFace(
+      videoElement as HTMLVideoElement,
+      new faceapi.TinyFaceDetectorOptions(),
+    );
+    console.log(detection);
+    if (detection) {
+      const dimensions = {
+        width: videoElement?.offsetWidth,
+        height: videoElement?.offsetHeight,
+      };
+
+      faceapi.matchDimensions(canvasElement, dimensions);
+      const resizedResults = faceapi.resizeResults(detection, dimensions);
+      faceapi.draw.drawDetections(canvasElement, resizedResults);
     }
 
-    detect();
-  }, []);
+    setTimeout(() => {
+      handleLoadedMetadata();
+    }, 1000);
+  }
 
   return (
     <main className="min-h-screen flex flex-col lg:flex-row md:justify-between gap-14 xl:gap-40 p-10 items-center container mx-auto">
@@ -50,7 +63,18 @@ function App() {
           <div className="relative flex items-center justify-center aspect-video w-full">
             {/* Substitua pela Webcam */}
             <div className="aspect-video rounded-lg bg-gray-300 w-full">
-              <video autoPlay ref={videoRef}></video>
+              <div className="relative">
+                <video
+                  onLoadedMetadata={handleLoadedMetadata}
+                  autoPlay
+                  ref={videoRef}
+                  className="rounded aspect-video"
+                ></video>
+                <canvas
+                  ref={canvasRef}
+                  className="absolute inset-0 w-full h-full"
+                ></canvas>
+              </div>
             </div>
             {/* Substitua pela Webcam */}
           </div>
